@@ -56,8 +56,8 @@ Frontend scripts, run from `frontend/`:
 - **Reports (owner):** revenue, top products, staff, lead source, CSV export, and conversion by salesperson.
 - **IndiaMART:** buyers arrive as leads and customers. The Pull API key stays on the server.
 - **Tally:** file import, a daily pull, or posting invoices back. See below.
-- **Roles:** `owner` sees everything. `staff` sees own and unassigned leads.
-- **AI:** an Ask AI button on every page. It answers from the leads, sales, customers, and stock the signed-in person is allowed to see. The owner sees the whole shop. Staff see their own leads, the unassigned queue, and the sales tied to those customers. A vague question gets one follow-up, and the next reply uses what they already said. Lead scoring and WhatsApp drafts stay in the app.
+- **Roles:** `owner` sees the whole shop, including Team day, sales by staff, and IndiaMART / Tally. `staff` see their own leads, the unassigned queue, and sales from those customers. Team day and other people's sales stay off their screens.
+- **AI:** an Ask AI button on every page. It answers from the leads, sales, customers, and stock the signed-in person is allowed to see, using the same role cut. Hot leads, overdue follow-ups, untouched leads, unassigned leads, and this week's website enquiries are answered with each person's name. A vague question gets one follow-up, and the next reply uses what they already said. Lead scoring and WhatsApp drafts stay in the app.
 
 ## Configuration
 
@@ -109,6 +109,8 @@ Port **9999** is only the Tally licence server. Several computers sharing one Go
 The chat goes to `POST /api/ai/chat`. The server calls Rokesh Cloud with `SERVER_KEY` from `backend/.env`. That key is never put in the browser or in a `VITE_` variable. `AI_BASE_URL` defaults to `https://ai.rokeshcloud.com/v1/assistant/chat`.
 
 The button uses the same brand colour as the rest of the CRM. On the full AI Assistant page the button stays hidden, because that page is already the chat.
+
+Asked for hot leads, overdue follow-ups, untouched leads, unassigned leads, or website enquiries from the last 7 days, the reply names each person. Staff get that list only for their own leads and the unassigned queue.
 
 ## Deploy
 

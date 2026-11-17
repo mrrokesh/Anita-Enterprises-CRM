@@ -57,6 +57,15 @@ function followStatus(lead, now) {
   return istDay(due) === istDay(now) ? 'today' : 'upcoming'
 }
 
+function namedList(leads, users, limit = 40) {
+  const lines = leads
+    .slice(0, limit)
+    .map((lead) => `${lead.id} | ${lead.name} | ${users.get(lead.assignedTo) || 'unassigned'}`)
+    .join('\n')
+  const extra = leads.length > limit ? `\n${leads.length - limit} more are not listed. The count includes them.` : ''
+  return (lines || 'None.') + extra
+}
+
 function leadLines(leads, users, products, now) {
   const weekAgo = now - 7 * DAY
   const open = leads.filter((lead) => OPEN.has(lead.stage))
@@ -230,7 +239,9 @@ function snapshot(body, now) {
   const users = new Map(view.users.map((user) => [user.id, user.name]))
   const productNames = new Map(products.map((product) => [product.id, product.name]))
   const open = leads.filter((lead) => OPEN.has(lead.stage))
-  const overdue = open.filter((lead) => followStatus(lead, now) === 'overdue')
+  const overdue = open
+    .filter((lead) => followStatus(lead, now) === 'overdue')
+    .sort((a, b) => Date.parse(a.nextFollowUpAt) - Date.parse(b.nextFollowUpAt))
   const hot = open.filter((lead) => temperature(lead, now) === 'hot')
   const untouched = open.filter((lead) => !lead.firstContactedAt)
   const unassigned = open.filter((lead) => !lead.assignedTo)
@@ -297,6 +308,16 @@ function snapshot(body, now) {
     .map((sale) => `${stamp(sale.at)} | ${sale.invoiceNo} | ${sale.customerName} | ${users.get(sale.staffId) || 'unassigned'} | ${money(sale.total)}`)
     .join('\n')
   return [
+    'Hot leads. Name every person below as [[lead:ID|Name]]. Columns: id | name | assignee',
+    namedList(hot, users),
+    'Overdue follow-ups. Name every person below as [[lead:ID|Name]]. Columns: id | name | assignee',
+    namedList(overdue, users),
+    'Untouched leads. Name every person below as [[lead:ID|Name]]. Columns: id | name | assignee',
+    namedList(untouched, users),
+    'Unassigned leads. Name every person below as [[lead:ID|Name]]. Columns: id | name | assignee',
+    namedList(unassigned, users),
+    'Website enquiries created in the last 7 days. Columns: id | name | assignee',
+    namedList(websiteWeek, users),
     salesHeadline(sales30, users),
     `Pipeline: ${stages}.`,
     `Counts: open ${open.length}, overdue ${overdue.length}, hot ${hot.length}, untouched ${untouched.length}, unassigned ${unassigned.length}, website this week ${websiteWeek.length}.`,
@@ -338,13 +359,13 @@ function systemPrompt(body) {
     `Now is ${stamp(now)} IST. The response-time target is ${Number(body.slaMinutes) || 15} minutes.`,
     'A lead moves through new, contacted, interested, store visit, and negotiation, then won or lost. Hot, warm, and cold come from the temperature column. A follow-up is overdue when its status is overdue. Untouched means nobody has contacted them yet. Unassigned means no staff member owns the lead. Sources include phone, WhatsApp, walk-in, website, and IndiaMART.',
     'The snapshot starts with the last 30 days sales ranking. Use that line for who sold the most. When no period is named, use last 30 days and say that period. Last week means Last 7 days. Last quarter means Last 90 days. Overall or all time means All time.',
-    'When you mention a lead, write it as [[lead:ID|Name]]. List the matching leads, not only a count.',
+    'Hot leads, overdue follow-ups, untouched leads, unassigned leads, and website enquiries are listed with id and name at the start of the snapshot. When asked for one of those, name every listed person as [[lead:ID|Name]]. Do not say the names are missing, and do not tell them to check the CRM.',
     'Do not say the figures are missing when they are in this snapshot. Do not invent people, invoices, or stock.',
     snapshot(body, now),
     'Use what this person has already said, including earlier messages. Keep any person, product, city, or time period they named. Do not ask for it again.',
     'If their latest message answers your previous question, or corrects it, answer from that. Do not repeat the old answer.',
     'If one detail is still missing, or several people or products match their words, ask one short question about that detail only. Do not offer an unrelated menu.',
-    'Answer only the part they asked about, in a few sentences. Do not dump the whole snapshot.',
+    'For a list such as hot leads or overdue follow-ups, name the people. For anything else, answer in a few sentences and do not dump the whole snapshot.',
     'When the answer is clear, add one next question they are likely to ask, written only as [[ask:question]] in the same language as the reply. Do not also write that question in the answer. It must continue the same subject. Leave [[ask]] out when you are still clarifying.',
   ].join('\n')
   return prompt
