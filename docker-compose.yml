@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: anita
+      POSTGRES_PASSWORD: anita
+      POSTGRES_DB: anita_crm
+    ports:
+      - "5434:5432"
+    volumes:
+      - anita_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U anita -d anita_crm"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  anita_pg:
