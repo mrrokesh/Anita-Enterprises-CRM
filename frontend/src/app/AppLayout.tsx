@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { DataGate } from '@/components/DataGate'
+import { AskAiButton } from '@/features/ai/components/AskAiButton'
 import { OverlayHost } from '@/components/OverlayHost'
 import { Sidebar } from '@/components/Sidebar'
 import { Topbar } from '@/components/Topbar'
@@ -38,6 +39,7 @@ export function AppLayout() {
       </div>
       <OverlayHost />
       <ToastViewport />
+      {status === 'ready' && user ? <AskAiButton /> : null}
     </div>
   )
 }

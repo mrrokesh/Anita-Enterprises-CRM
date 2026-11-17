@@ -1,6 +1,7 @@
 import cors from 'cors'
 import express from 'express'
 import { initDb, pool } from './db.js'
+import { answerCrm } from './ai.js'
 import { registerIntegrations } from './integrations/routes.js'
 import { startTallySchedule } from './integrations/schedule.js'
 import {
@@ -24,6 +25,13 @@ app.use(express.json({ limit: '8mb', type: ['application/json', 'text/json', 'te
 
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
 registerIntegrations(app, wrap)
+
+app.post(
+  '/api/ai/chat',
+  wrap(async (req, res) => {
+    res.json(await answerCrm(req.body ?? {}))
+  }),
+)
 
 function parseListQuery(query) {
   const page = Math.max(1, Number(query.page) || 1)

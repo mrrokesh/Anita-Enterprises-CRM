@@ -1,6 +1,6 @@
-import type { SourceId, Temperature } from '@/constants'
+import type { SourceId, Temperature, UserRole } from '@/constants'
 import type { Alternative } from '@/features/products/similarity'
-import type { Lead, Product, User } from '@/types'
+import type { Customer, Lead, Product, User } from '@/types'
 
 export type Lang = 'en' | 'ta'
 
@@ -101,9 +101,16 @@ export interface AtRiskOutput {
 
 export interface ChatInput extends TeamCtx {
   question: string
+  history?: { role: 'user' | 'assistant'; content: string }[]
+  customers?: Customer[]
+  viewerName?: string
+  viewerRole?: UserRole
+  viewerId?: string
 }
 export interface ChatOutput {
   /** Text with `[[lead:ID|Name]]` markers the UI turns into links. */
   reply: string
   leadIds: string[]
+  /** Next questions based on what the person just asked. */
+  suggestions?: string[]
 }

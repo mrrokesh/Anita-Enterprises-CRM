@@ -8,6 +8,7 @@
  *   fetch(env.aiProxyUrl, { method: 'POST', body: JSON.stringify({ task, input }) })
  * The input/output types below are the contract the proxy must honour.
  */
+import { request } from '@/services/api/http'
 import {
   draftWhatsAppMessage,
   recommendProducts,
@@ -67,7 +68,7 @@ export interface AiOutputs {
 export interface AskResult<T = unknown> {
   task: AiTask
   output: T
-  meta: { provider: 'mock'; latencyMs: number }
+  meta: { provider: 'mock' | 'rokesh'; latencyMs: number }
 }
 
 type Runner = { [K in AiTask]: (input: AiInputs[K]) => AiOutputs[K] }
@@ -93,6 +94,18 @@ export async function ask<T extends AiTask>({
   task: T
   input: AiInputs[T]
 }): Promise<AskResult<AiOutputs[T]>> {
+  if (task === 'chatWithCRM') {
+    const started = performance.now()
+    const output = await request<AiOutputs['chatWithCRM']>('/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    })
+    return {
+      task,
+      output,
+      meta: { provider: 'rokesh', latencyMs: Math.round(performance.now() - started) },
+    } as AskResult<AiOutputs[T]>
+  }
   const latencyMs = 600 + Math.round(Math.random() * 900)
   await new Promise((r) => setTimeout(r, latencyMs))
   const output = (RUNNERS[task] as (i: AiInputs[T]) => AiOutputs[T])(input)

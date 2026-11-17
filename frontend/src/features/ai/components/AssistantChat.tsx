@@ -8,9 +8,9 @@ import { ChatBubble } from './ChatBubble'
 
 const SUGGESTIONS = ['hot', 'overdue', 'untouched', 'website', 'unassigned'] as const
 
-export function AssistantChat() {
+export function AssistantChat({ compact = false }: { compact?: boolean }) {
   const { t } = useTranslation()
-  const { msgs, busy, send } = useChat()
+  const { msgs, suggestions, busy, send } = useChat()
   const [text, setText] = useState('')
   const end = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -22,7 +22,7 @@ export function AssistantChat() {
     void send(q)
   }
   return (
-    <Card className="flex h-[calc(100dvh-13rem)] min-h-96 flex-col">
+    <Card className={compact ? 'flex h-full min-h-0 flex-col rounded-none border-0' : 'flex h-[calc(100dvh-13rem)] min-h-96 flex-col'}>
       <div className="flex-1 space-y-3 overflow-y-auto p-4" aria-live="polite">
         <div className="max-w-[85%] rounded-2xl bg-surface-2 px-3.5 py-2.5 text-sm">
           {t('assistant.welcome')}
@@ -34,15 +34,15 @@ export function AssistantChat() {
         <div ref={end} />
       </div>
       <div className="flex flex-wrap gap-1.5 border-t border-border px-3 pt-3">
-        {SUGGESTIONS.map((s) => (
+        {(suggestions.length ? suggestions : SUGGESTIONS.map((s) => t(`assistant.suggest.${s}`))).map((label) => (
           <button
-            key={s}
+            key={label}
             type="button"
             disabled={busy}
-            onClick={() => submit(t(`assistant.suggest.${s}`))}
+            onClick={() => submit(label)}
             className="rounded-full border border-border px-3 py-1 text-xs hover:bg-surface-2 disabled:opacity-50"
           >
-            {t(`assistant.suggest.${s}`)}
+            {label}
           </button>
         ))}
       </div>

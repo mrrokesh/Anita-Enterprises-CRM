@@ -8,7 +8,7 @@ backend/    Node.js, Express
 postgres    Docker Compose (database anita_crm)
 ```
 
-The earlier UI demo is still at https://ijbrhi0ig0xkyg4jt8zh0pnc.host.rokeshcloud.com. This repository now includes the API, so new deploys build `frontend/` and run `backend/` with PostgreSQL.
+The web app is at https://ijbrhi0ig0xkyg4jt8zh0pnc.host.rokeshcloud.com. That host serves the frontend. The API, PostgreSQL, IndiaMART, Tally, and the assistant run on the shop computer.
 
 ## Run
 
@@ -57,13 +57,13 @@ Frontend scripts, run from `frontend/`:
 - **IndiaMART:** buyers arrive as leads and customers. The Pull API key stays on the server.
 - **Tally:** file import, a daily pull, or posting invoices back. See below.
 - **Roles:** `owner` sees everything. `staff` sees own and unassigned leads.
-- **AI:** rule-based assistant, lead scoring and WhatsApp drafts. A real model would be called from the backend.
+- **AI:** an Ask AI button on every page. It answers from the leads, sales, customers, and stock the signed-in person is allowed to see. The owner sees the whole shop. Staff see their own leads, the unassigned queue, and the sales tied to those customers. A vague question gets one follow-up, and the next reply uses what they already said. Lead scoring and WhatsApp drafts stay in the app.
 
 ## Configuration
 
 | File | Purpose |
 | --- | --- |
-| `backend/.env` | `PORT` (8000) and `DATABASE_URL` |
+| `backend/.env` | `PORT` (8000), `DATABASE_URL`, `AI_BASE_URL`, and `SERVER_KEY` |
 | `frontend/.env` | Optional. Defaults to `VITE_API_BASE_URL=http://localhost:8000/api` |
 
 `frontend/.env.example` and `backend/.env.example` list the variables. Do not put provider API keys in any `VITE_` variable.
@@ -80,6 +80,7 @@ Frontend scripts, run from `frontend/`:
 | POST | `/api/:resource` | Create |
 | PATCH | `/api/:resource/:id` | Update |
 | DELETE | `/api/:resource/:id` | Delete |
+| POST | `/api/ai/chat` | Assistant reply. The Rokesh key stays on the server. |
 
 List query: `search`, `filters` (JSON object), `sortBy`, `sortDir`, `page`, `pageSize`.
 
@@ -103,6 +104,12 @@ Tally listens on port **9000** (`http://127.0.0.1:9000` on the same PC). On a sh
 
 Port **9999** is only the Tally licence server. Several computers sharing one Gold licence use that port. It is separate from the CRM connection.
 
+## Assistant
+
+The chat goes to `POST /api/ai/chat`. The server calls Rokesh Cloud with `SERVER_KEY` from `backend/.env`. That key is never put in the browser or in a `VITE_` variable. `AI_BASE_URL` defaults to `https://ai.rokeshcloud.com/v1/assistant/chat`.
+
+The button uses the same brand colour as the rest of the CRM. On the full AI Assistant page the button stays hidden, because that page is already the chat.
+
 ## Deploy
 
-`frontend/Dockerfile` builds the web app and serves it on port 4173. The API is `backend/` and needs `DATABASE_URL`. The live demo linked above was built when this repository was the frontend only.
+The Dockerfile at the repository root builds the frontend and serves it on port 4173. That is what the live host runs. `backend/` needs PostgreSQL (`DATABASE_URL`) and, for the assistant, `SERVER_KEY`. The built web app calls `http://localhost:8000/api`, so the chat, IndiaMART, and Tally work on a computer where this API is running.

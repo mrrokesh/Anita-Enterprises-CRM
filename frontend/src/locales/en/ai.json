@@ -118,12 +118,14 @@
   "assistant": {
     "title": "AI assistant",
     "description": "Ask about your leads in English or Tamil.",
+    "ask": "Ask AI",
+    "close": "Close",
     "placeholder": "Ask something, e.g. Show hot leads",
     "send": "Send",
     "you": "You",
     "assistant": "Assistant",
     "thinking": "Thinking…",
-    "welcome": "Hi! I can find hot leads, overdue follow-ups, untouched enquiries and more.",
+    "welcome": "Hi! I can find hot leads, overdue follow-ups, untouched enquiries and more. If a question is unclear, I will ask you.",
     "suggest": {
       "hot": "Show hot leads",
       "overdue": "Overdue follow-ups",
